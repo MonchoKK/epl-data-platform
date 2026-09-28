@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EPL Club Data Platform | Data Engineering Pipeline</title>
+  <meta name="description" content="End-to-End Premier League Data Engineering Platform featuring automated ingestion, transformation, relational modeling, and SQL analytical views.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header / Navigation Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">⚽</div>
+        <div>
+          <h1 class="brand-title">EPL Club Data Platform</h1>
+          <span class="brand-badge">Data Engineering Elective</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="pipeline-status-badge" class="status-indicator online">
+          <span class="pulse-dot"></span>
+          <span id="pipeline-status-text">Warehouse: Online</span>
+        </div>
+        <button id="btn-trigger-pipeline" class="btn-primary" title="Trigger full ELT pipeline on backend">
+          <span class="btn-icon">⚡</span> Run ELT Pipeline
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    
+    <!-- Data Pipeline Lineage Hero Section -->
+    <section class="pipeline-hero">
+      <div class="hero-header">
+        <div>
+          <h2>End-to-End Data Engineering Pipeline</h2>
+          <p class="hero-subtitle">Automated Bronze &rarr; Silver &rarr; Gold architecture with relational normalization and SQL window views</p>
+        </div>
+        <button id="btn-view-sql" class="btn-outline">
+          <span>&lt;/&gt;</span> Inspect Analytical SQL Views
+        </button>
+      </div>
+
+      <div class="lineage-flow">
+        <div class="lineage-step bronze">
+          <div class="step-tag">Bronze Layer</div>
+          <h3>1. Data Ingestion</h3>
+          <p class="step-desc">Python extractors pull clubs, players, fixtures, and standings</p>
+          <div class="step-stats">
+            <span class="stat-num" id="stat-raw-count">55</span>
+            <span class="stat-label">Raw Records</span>
+          </div>
+          <div class="step-format">JSON &bull; data/raw/</div>
+        </div>
+
+        <div class="lineage-arrow">&rarr;</div>
+
+        <div class="lineage-step silver">
+          <div class="step-tag">Silver Layer</div>
+          <h3>2. Cleaning & Transform</h3>
+          <p class="step-desc">Schema validation, position normalization, derived form & GD</p>
+          <div class="step-stats">
+            <span class="stat-num" id="stat-clean-count">55</span>
+            <span class="stat-label">Cleaned Records</span>
+          </div>
+          <div class="step-format">CSV + JSON &bull; data/processed/</div>
+        </div>
+
+        <div class="lineage-arrow">&rarr;</div>
+
+        <div class="lineage-step gold">
+          <div class="step-tag">Gold Layer</div>
+          <h3>3. Relational Warehouse</h3>
+          <p class="step-desc">Primary/Foreign Keys, check constraints, DENSE_RANK() views</p>
+          <div class="step-stats">
+            <span class="stat-num" id="stat-loaded-count">55</span>
+            <span class="stat-label">Loaded Entities</span>
+          </div>
+          <div class="step-format">SQL Views &bull; PostgreSQL / SQLite</div>
+        </div>
+
+        <div class="lineage-arrow">&rarr;</div>
+
+        <div class="lineage-step api-layer">
+          <div class="step-tag">Serving Layer</div>
+          <h3>4. FastAPI REST API</h3>
+          <p class="step-desc">CORS-enabled REST endpoints for web applications & BI tools</p>
+          <div class="step-stats">
+            <span class="stat-num">8</span>
+            <span class="stat-label">Active Endpoints</span>
+          </div>
+          <div class="step-format">REST &bull; /api/docs</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platform Navigation Tabs -->
+    <nav class="platform-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="tab-standings" id="tab-btn-standings">📊 League Standings</button>
+      <button class="tab-btn" data-tab="tab-clubs" id="tab-btn-clubs">🏟️ Clubs & Stadiums</button>
+      <button class="tab-btn" data-tab="tab-players" id="tab-btn-players">👥 Players & Squads</button>
+      <button class="tab-btn" data-tab="tab-matches" id="tab-btn-matches">⚽ Fixtures & Results</button>
+      <button class="tab-btn" data-tab="tab-analytics" id="tab-btn-analytics">📈 SQL Warehouse Analytics</button>
+    </nav>
+
+    <!-- TAB 1: STANDINGS -->
+    <section id="tab-standings" class="tab-content active">
+      <div class="section-toolbar">
+        <div>
+          <h3>Premier League Table</h3>
+          <p class="section-desc">Computed dynamically via SQL view <code>vw_league_table</code> using window ranking</p>
+        </div>
+        <div class="legend-pills">
+          <span class="legend-pill cl">1-4 Champions League</span>
+          <span class="legend-pill el">5 Europa League</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="standings-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Pos</th>
+              <th>Club</th>
+              <th>PL</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GF</th>
+              <th>GA</th>
+              <th>GD</th>
+              <th>PTS</th>
+              <th>PPG</th>
+              <th>Recent Form</th>
+            </tr>
+          </thead>
+          <tbody id="standings-tbody">
+            <!-- Dynamically populated via app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: CLUBS -->
+    <section id="tab-clubs" class="tab-content">
+      <div class="section-toolbar">
+        <div>
+          <h3>Clubs Registry</h3>
+          <p class="section-desc">Normalized dimensional entities with stadium metrics and founding history</p>
+        </div>
+        <div class="filter-group">
+          <input type="text" id="club-search-input" class="search-input" placeholder="Search clubs or city...">
+        </div>
+      </div>
+
+      <div class="clubs-grid" id="clubs-grid">
+        <!-- Dynamically populated via app.js -->
+      </div>
+    </section>
+
+    <!-- TAB 3: PLAYERS -->
+    <section id="tab-players" class="tab-content">
+      <div class="section-toolbar">
+        <div>
+          <h3>Player Roster &amp; Statistics</h3>
+          <p class="section-desc">Relational player dimension with goal contributions and efficiency ratios</p>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="player-search-input" class="search-input" placeholder="Search player name...">
+          <select id="player-position-select" class="dropdown-filter">
+            <option value="">All Positions</option>
+            <option value="Forward">Forwards</option>
+            <option value="Midfielder">Midfielders</option>
+            <option value="Defender">Defenders</option>
+            <option value="Goalkeeper">Goalkeepers</option>
+          </select>
+          <select id="player-club-select" class="dropdown-filter">
+            <option value="">All Clubs</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="players-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Club</th>
+              <th>Position</th>
+              <th>Nationality</th>
+              <th>No.</th>
+              <th>Apps</th>
+              <th>Goals</th>
+              <th>Assists</th>
+              <th>Goal Contrib.</th>
+              <th>Goals/Game</th>
+            </tr>
+          </thead>
+          <tbody id="players-tbody">
+            <!-- Dynamically populated via app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: MATCHES -->
+    <section id="tab-matches" class="tab-content">
+      <div class="section-toolbar">
+        <div>
+          <h3>Fixtures &amp; Match Results</h3>
+          <p class="section-desc">Parsed from raw score strings into discrete home/away goal metrics</p>
+        </div>
+        <div class="filter-group">
+          <select id="match-gameweek-select" class="dropdown-filter">
+            <option value="">All Gameweeks</option>
+            <option value="1">Gameweek 1</option>
+            <option value="2">Gameweek 2</option>
+            <option value="3">Gameweek 3</option>
+            <option value="4">Gameweek 4</option>
+            <option value="5">Gameweek 5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="matches-grid" id="matches-grid">
+        <!-- Dynamically populated via app.js -->
+      </div>
+    </section>
+
+    <!-- TAB 5: ANALYTICS & SQL VIEWS -->
+    <section id="tab-analytics" class="tab-content">
+      <div class="analytics-layout">
+        <div class="analytics-card">
+          <div class="card-header">
+            <h3>🔥 Golden Boot Leaderboard</h3>
+            <span class="view-tag">SQL View: vw_top_scorers</span>
+          </div>
+          <p class="card-sub">Ranked using <code>ROW_NUMBER() OVER (ORDER BY goals DESC, assists DESC)</code></p>
+          <div class="scorers-list" id="top-scorers-list">
+            <!-- Dynamically populated via app.js -->
+          </div>
+        </div>
+
+        <div class="analytics-card">
+          <div class="card-header">
+            <h3>📊 Club Squad Aggregations</h3>
+            <span class="view-tag">SQL View: vw_club_analytics</span>
+          </div>
+          <p class="card-sub">Multi-table join (Clubs &plus; Players &plus; Standings) with <code>SUM()</code>, <code>AVG()</code>, and <code>COUNT()</code></p>
+          <div class="table-container">
+            <table class="data-table" id="club-analytics-table">
+              <thead>
+                <tr>
+                  <th>Club</th>
+                  <th>Squad Size</th>
+                  <th>Total Goals</th>
+                  <th>Total Assists</th>
+                  <th>Avg Apps</th>
+                  <th>Stadium Capacity</th>
+                </tr>
+              </thead>
+              <tbody id="club-analytics-tbody">
+                <!-- Dynamically populated via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SQL Modal Viewer -->
+  <div id="sql-modal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>Data Warehouse Analytical SQL Queries</h3>
+        <button id="btn-close-modal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="sql-block">
+          <h4>1. Dynamic League Table View (Window Functions)</h4>
+          <pre><code>CREATE VIEW vw_league_table AS
+SELECT
+    DENSE_RANK() OVER (
+        ORDER BY s.points DESC, s.goal_difference DESC, s.goals_for DESC
+    ) AS dynamic_rank,
+    c.name AS club_name,
+    c.short_name,
+    s.played, s.won, s.drawn, s.lost,
+    s.goals_for, s.goals_against, s.goal_difference,
+    s.points, s.points_per_game, s.form
+FROM standings s
+JOIN clubs c ON s.club_id = c.club_id;</code></pre>
+        </div>
+
+        <div class="sql-block">
+          <h4>2. Golden Boot Top Scorers View</h4>
+          <pre><code>CREATE VIEW vw_top_scorers AS
+SELECT
+    ROW_NUMBER() OVER (
+        ORDER BY p.goals DESC, p.assists DESC, p.appearances ASC
+    ) AS scorer_rank,
+    p.name AS player_name,
+    c.name AS club_name,
+    p.position, p.goals, p.assists,
+    p.goal_contributions, p.goals_per_game
+FROM players p
+JOIN clubs c ON p.club_id = c.club_id
+WHERE p.goals > 0;</code></pre>
+        </div>
+
+        <div class="sql-block">
+          <h4>3. Club Squad Performance Aggregation View</h4>
+          <pre><code>CREATE VIEW vw_club_analytics AS
+SELECT
+    c.name AS club_name,
+    COUNT(DISTINCT p.player_id) AS squad_size,
+    COALESCE(SUM(p.goals), 0) AS squad_goals,
+    COALESCE(SUM(p.assists), 0) AS squad_assists,
+    ROUND(AVG(p.appearances), 1) AS avg_player_appearances,
+    c.capacity
+FROM clubs c
+LEFT JOIN players p ON c.club_id = p.club_id
+GROUP BY c.club_id, c.name, c.capacity;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>Premier League Data Platform &bull; Built for Data Engineering Elective Demonstration</p>
+      <p class="footer-sub">Ingestion &rarr; Raw Storage &rarr; Cleaning &amp; Transformations &rarr; Data Warehouse &rarr; REST API &rarr; UI</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
