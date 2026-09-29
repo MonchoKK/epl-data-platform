@@ -29,6 +29,7 @@ data/processed/*.json
 data/processed/*.csv
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/warehouse/.gitkeep
 
 # IDEs & OS
 .idea/

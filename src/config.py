@@ -11,10 +11,12 @@ DATA_DIR = BASE_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 
+WAREHOUSE_DIR = DATA_DIR / "warehouse"
+
 # Database Configuration
 # Default is SQLite for out-of-the-box local development without requiring external server setups,
 # while seamlessly allowing PostgreSQL via DATABASE_URL environment variable.
-DEFAULT_DB_PATH = BASE_DIR / "epl_warehouse.db"
+DEFAULT_DB_PATH = WAREHOUSE_DIR / "epl_warehouse.db"
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
 # Current Season and Source Settings
@@ -23,9 +25,10 @@ DATA_SOURCE_NAME = "PremierLeague_Official_Extract"
 
 
 def ensure_directories() -> None:
-    """Ensures raw and processed data lake directories exist on the filesystem."""
+    """Ensures raw, processed, and warehouse directories exist on the filesystem."""
     RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
     PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    WAREHOUSE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_database_url() -> str:
