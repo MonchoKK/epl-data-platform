@@ -29,6 +29,18 @@ def get_health() -> Dict[str, Any]:
     }
 
 
+@api_router.get("/quality")
+def get_quality_report() -> Dict[str, Any]:
+    """Returns the latest Data Quality and Integrity audit report."""
+    import json
+    from src.config import PROCESSED_DATA_DIR
+    report_file = PROCESSED_DATA_DIR / "quality_report.json"
+    if not report_file.exists():
+        raise HTTPException(status_code=404, detail="Quality report has not been generated yet.")
+    with open(report_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 # =========================================================================
 # CLUBS ENDPOINTS
 # =========================================================================

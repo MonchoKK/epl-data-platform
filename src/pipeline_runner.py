@@ -59,6 +59,7 @@ def run_full_pipeline() -> Dict[str, Any]:
     logger.info("=================================================================")
     logger.info("  ✅ EPL DATA PIPELINE COMPLETED SUCCESSFULLY IN %s SECONDS  ", elapsed_time)
     logger.info("  Records ingested: %d", ingestion_result["total_records"])
+    logger.info("  Data quality status: %s", transform_result.get("manifest", {}).get("quality_status", "PASS"))
     logger.info("  Records transformed: %d", transform_result["manifest"]["total_processed_rows"])
     logger.info("  Records loaded to warehouse: %d", loader_result["total_loaded"])
     logger.info("=================================================================")
@@ -67,6 +68,7 @@ def run_full_pipeline() -> Dict[str, Any]:
         "execution_timestamp": datetime.now(timezone.utc).isoformat(),
         "elapsed_seconds": elapsed_time,
         "ingestion": ingestion_result,
+        "quality": transform_result.get("quality_report", {}),
         "transformation": transform_result["manifest"],
         "loader": loader_result,
     }
