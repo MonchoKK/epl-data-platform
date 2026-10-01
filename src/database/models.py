@@ -41,9 +41,9 @@ class Club(Base):
 
     # Relationships
     players = relationship("Player", back_populates="club", cascade="all, delete-orphan")
-    home_matches = relationship("Match", foreign_keys="Match.home_club_id", back_populates="home_club")
-    away_matches = relationship("Match", foreign_keys="Match.away_club_id", back_populates="away_club")
-    standing = relationship("Standing", back_populates="club", uselist=False)
+    home_matches = relationship("Match", foreign_keys="Match.home_club_id", back_populates="home_club", cascade="all, delete-orphan")
+    away_matches = relationship("Match", foreign_keys="Match.away_club_id", back_populates="away_club", cascade="all, delete-orphan")
+    standing = relationship("Standing", back_populates="club", uselist=False, cascade="all, delete-orphan")
 
     def to_dict(self) -> dict:
         return {
@@ -117,8 +117,8 @@ class Match(Base):
 
     match_id = Column(Integer, primary_key=True, index=True)
     gameweek = Column(Integer, nullable=False, index=True)
-    home_club_id = Column(Integer, ForeignKey("clubs.club_id"), nullable=False, index=True)
-    away_club_id = Column(Integer, ForeignKey("clubs.club_id"), nullable=False, index=True)
+    home_club_id = Column(Integer, ForeignKey("clubs.club_id", ondelete="CASCADE"), nullable=False, index=True)
+    away_club_id = Column(Integer, ForeignKey("clubs.club_id", ondelete="CASCADE"), nullable=False, index=True)
     match_date = Column(String(50), nullable=False, index=True)
     home_score = Column(Integer, nullable=False)
     away_score = Column(Integer, nullable=False)
@@ -164,7 +164,7 @@ class Standing(Base):
     __tablename__ = "standings"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    club_id = Column(Integer, ForeignKey("clubs.club_id"), unique=True, nullable=False, index=True)
+    club_id = Column(Integer, ForeignKey("clubs.club_id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
     position = Column(Integer, nullable=False, index=True)
     played = Column(Integer, nullable=False)
     won = Column(Integer, nullable=False)
