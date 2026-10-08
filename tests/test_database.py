@@ -4,8 +4,13 @@ from sqlalchemy.orm import sessionmaker
 
 from src.database.connection import Base
 from src.database.loader import load_clubs, load_players
-from src.database.models import Club, Player, create_all_tables
-from src.database.views import create_analytical_views, query_top_scorers_view
+from src.database.models import Club, Player, Standing, create_all_tables
+from src.database.views import (
+    create_analytical_views,
+    query_club_analytics_view,
+    query_league_table_view,
+    query_top_scorers_view,
+)
 from src.transform.clean_clubs import clean_clubs_data
 from src.transform.clean_players import clean_players_data
 
@@ -72,8 +77,40 @@ def test_database_idempotent_loading(in_memory_db):
     updated_player = session.query(Player).filter_by(player_id=101).first()
     assert updated_player.goals == 16
 
-    # Test analytical SQL view
+    # Test analytical SQL views
     scorers = query_top_scorers_view(session)
     assert len(scorers) == 1
     assert scorers[0]["player_name"] == "Bukayo Saka"
     assert scorers[0]["goals"] == 16
+
+    standing = Standing(
+        club_id=1,
+        position=1,
+        played=30,
+        won=20,
+        drawn=5,
+        lost=5,
+        goals_for=65,
+        goals_against=25,
+        goal_difference=40,
+        points=65,
+        points_per_game=2.17,
+        win_percentage=66.7,
+        form="W-W-D-W-L",
+        transformed_at="2026-10-01",
+    )
+    session.add(standing)
+    session.commit()
+
+    league_table = query_league_table_view(session)
+    assert len(league_table) == 1
+    assert league_table[0]["club_name"] == "Arsenal"
+    assert league_table[0]["dynamic_rank"] == 1
+    assert league_table[0]["points"] == 65
+
+    club_analytics = query_club_analytics_view(session)
+    assert len(club_analytics) == 1
+    assert club_analytics[0]["club_name"] == "Arsenal"
+    assert club_analytics[0]["squad_size"] == 1
+    assert club_analytics[0]["squad_goals"] == 16
+    assert club_analytics[0]["league_position"] == 1

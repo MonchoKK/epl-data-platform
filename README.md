@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0%2B-red.svg)](https://www.sqlalchemy.org/)
-[![Tests](https://img.shields.io/badge/Tests-10%2F10%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-49%2F49%20Passing-brightgreen.svg)]()
 
 An end-to-end **Data Engineering Platform** built for exploring the English Premier League (EPL). Rather than simply being a static football website, this project demonstrates a genuine, production-grade **ELT/ETL Data Pipeline** from bronze ingestion to silver transformations, gold relational data warehousing, analytical SQL window views, REST APIs, and an interactive presentation dashboard.
 WTC-LHVJQSJP
@@ -152,13 +152,18 @@ Warehouse loading complete! (Clubs: 10, Players: 20, Matches: 15, Standings: 10)
 =================================================================
 ```
 
-### 3. Run Automated Tests
+### 3. Run Automated Tests & Diagnostics
 
+Run the full pytest suite:
 ```bash
 pytest
 ```
+*(Executes 49 comprehensive unit and integration tests covering raw ingestion, mathematical invariants, schema integrity, 3NF constraints, idempotency, and the three analytical SQL window views: `vw_league_table`, `vw_top_scorers`, and `vw_club_analytics`).*
 
-*(Runs 10 unit and integration tests covering extraction, mathematical invariants, schema cleaning, and SQL view ranking).*
+Execute live CLI analytical SQL views inspection:
+```bash
+python -m src.database.verify_analytical_views
+```
 
 ### 4. Launch the API & Web Dashboard
 

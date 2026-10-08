@@ -115,8 +115,8 @@ def query_league_table_view(session: Session) -> List[Dict[str, Any]]:
 
 def query_top_scorers_view(session: Session, limit: int = 10) -> List[Dict[str, Any]]:
     """Executes SELECT query on vw_top_scorers view with row limit."""
-    stmt = text(f"SELECT * FROM vw_top_scorers ORDER BY scorer_rank ASC LIMIT {limit}")
-    result = session.execute(stmt)
+    stmt = text("SELECT * FROM vw_top_scorers ORDER BY scorer_rank ASC LIMIT :limit")
+    result = session.execute(stmt, {"limit": limit})
     return [dict(row._mapping) for row in result]
 
 
