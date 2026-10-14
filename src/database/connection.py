@@ -56,6 +56,18 @@ def get_db_engine(db_url: str | None = None) -> Engine:
     return _engine
 
 
+def reset_db_engine() -> None:
+    """Disposes active database engine and resets singleton references."""
+    global _engine, _SessionFactory
+    if _engine is not None:
+        try:
+            _engine.dispose()
+        except Exception:
+            pass
+        _engine = None
+        _SessionFactory = None
+
+
 @contextmanager
 def get_db_session(engine: Engine | None = None) -> Generator[Session, None, None]:
     """Context manager for transactional database sessions.

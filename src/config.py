@@ -33,4 +33,4 @@ def ensure_directories() -> None:
 
 def get_database_url() -> str:
     """Returns the configured database URL."""
-    return DATABASE_URL
+    return os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")

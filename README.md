@@ -3,7 +3,8 @@
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0%2B-red.svg)](https://www.sqlalchemy.org/)
-[![Tests](https://img.shields.io/badge/Tests-49%2F49%20Passing-brightgreen.svg)]()
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16--alpine-336791.svg)](https://www.postgresql.org/)
+[![Tests](https://img.shields.io/badge/Tests-58%2F58%20Passing-brightgreen.svg)]()
 
 An end-to-end **Data Engineering Platform** built for exploring the English Premier League (EPL). Rather than simply being a static football website, this project demonstrates a genuine, production-grade **ELT/ETL Data Pipeline** from bronze ingestion to silver transformations, gold relational data warehousing, analytical SQL window views, REST APIs, and an interactive presentation dashboard.
 WTC-LHVJQSJP
@@ -158,11 +159,20 @@ Run the full pytest suite:
 ```bash
 pytest
 ```
-*(Executes 49 comprehensive unit and integration tests covering raw ingestion, mathematical invariants, schema integrity, 3NF constraints, idempotency, and the three analytical SQL window views: `vw_league_table`, `vw_top_scorers`, and `vw_club_analytics`).*
+*(Executes 58 comprehensive unit and integration tests across SQLite and containerized PostgreSQL, covering raw ingestion, mathematical invariants, schema integrity, 3NF constraints, cascading deletes, multi-run idempotency, and all three analytical SQL window views: `vw_league_table`, `vw_top_scorers`, and `vw_club_analytics`).*
 
 Execute live CLI analytical SQL views inspection:
 ```bash
 python -m src.database.verify_analytical_views
+```
+
+Execute live PostgreSQL container diagnostics (Task 4):
+```bash
+# 1. Spin up the containerized PostgreSQL warehouse:
+docker compose up -d
+
+# 2. Run the automated PostgreSQL warehouse verification suite:
+python -m src.database.verify_postgres
 ```
 
 ### 4. Launch the API & Web Dashboard
@@ -203,3 +213,4 @@ When presenting this project to your instructor:
 3. *"The database is modeled in Third Normal Form (3NF) with primary and foreign keys, cascading deletes, check constraints, and B-Tree indexes on join paths."*
 4. *"Instead of computing rankings in application code, I implemented analytical SQL views that leverage window functions like `DENSE_RANK()` and `ROW_NUMBER()` directly in the database engine."*
 5. *"The entire pipeline is idempotent: running it repeatedly causes zero duplicate errors and safely merges changes into the warehouse."*
+6. *"The warehouse architecture is fully dialect-agnostic and containerized: it seamlessly operates both locally via SQLite for zero-setup development and in production against our Dockerized PostgreSQL 16 container, verified with dialect-aware DDL, cascading drops, and window views."*

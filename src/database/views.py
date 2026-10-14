@@ -86,23 +86,33 @@ GROUP BY
 def create_analytical_views(engine: Engine) -> None:
     """Creates analytical SQL views demonstrating window functions, joins, and aggregations.
 
+    Supports both SQLite and PostgreSQL dialects automatically.
+
     Args:
         engine: Active SQLAlchemy Engine.
     """
     logger.info("Deploying analytical SQL views to data warehouse...")
+    is_postgres = engine.dialect.name == "postgresql"
+    create_prefix = "CREATE OR REPLACE VIEW" if is_postgres else "CREATE VIEW IF NOT EXISTS"
+
+    league_sql = VIEW_LEAGUE_TABLE_SQL.replace("CREATE VIEW IF NOT EXISTS", create_prefix)
+    scorers_sql = VIEW_TOP_SCORERS_SQL.replace("CREATE VIEW IF NOT EXISTS", create_prefix)
+    analytics_sql = VIEW_CLUB_ANALYTICS_SQL.replace("CREATE VIEW IF NOT EXISTS", create_prefix)
+
     with engine.begin() as conn:
-        conn.execute(text(VIEW_LEAGUE_TABLE_SQL))
-        conn.execute(text(VIEW_TOP_SCORERS_SQL))
-        conn.execute(text(VIEW_CLUB_ANALYTICS_SQL))
+        conn.execute(text(league_sql))
+        conn.execute(text(scorers_sql))
+        conn.execute(text(analytics_sql))
     logger.info("Successfully deployed all 3 analytical SQL views.")
 
 
 def drop_analytical_views(engine: Engine) -> None:
     """Drops analytical SQL views."""
+    cascade = " CASCADE" if engine.dialect.name == "postgresql" else ""
     with engine.begin() as conn:
-        conn.execute(text("DROP VIEW IF EXISTS vw_league_table;"))
-        conn.execute(text("DROP VIEW IF EXISTS vw_top_scorers;"))
-        conn.execute(text("DROP VIEW IF EXISTS vw_club_analytics;"))
+        conn.execute(text(f"DROP VIEW IF EXISTS vw_league_table{cascade};"))
+        conn.execute(text(f"DROP VIEW IF EXISTS vw_top_scorers{cascade};"))
+        conn.execute(text(f"DROP VIEW IF EXISTS vw_club_analytics{cascade};"))
     logger.info("Dropped analytical views.")
 
 
@@ -124,4 +134,11 @@ def query_club_analytics_view(session: Session) -> List[Dict[str, Any]]:
     """Executes SELECT query on aggregated vw_club_analytics view."""
     stmt = text("SELECT * FROM vw_club_analytics ORDER BY league_position ASC")
     result = session.execute(stmt)
-    return [dict(row._mapping) for row in result]
+    rows = []
+    for row in result:
+        item = dict(row._mapping)
+        # PostgreSQL returns Decimal for numeric/AVG; coerce to float for consistency across dialects
+        if item.get("avg_player_appearances") is not None:
+            item["avg_player_appearances"] = float(item["avg_player_appearances"])
+        rows.append(item)
+    return rows
