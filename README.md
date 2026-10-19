@@ -4,7 +4,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0%2B-red.svg)](https://www.sqlalchemy.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16--alpine-336791.svg)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/Tests-58%2F58%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-88%20Total%20--%20100%25%20Passing-brightgreen.svg)]()
 
 An end-to-end **Data Engineering Platform** built for exploring the English Premier League (EPL). Rather than simply being a static football website, this project demonstrates a genuine, production-grade **ELT/ETL Data Pipeline** from bronze ingestion to silver transformations, gold relational data warehousing, analytical SQL window views, REST APIs, and an interactive presentation dashboard.
 WTC-LHVJQSJP
@@ -75,14 +75,19 @@ This platform directly satisfies the core requirements of an advanced Data Engin
   - `standings`: Club ID (Unique FK &rarr; `clubs.club_id`), points, goal difference, win rate.
 - **Indexing**: B-Tree indexes placed on high-cardinality join keys (`club_id`), filter columns (`position`, `gameweek`), and sorting fields (`points`, `goals`).
 
-### 4. Advanced SQL & Analytical Views
+### 4. Advanced SQL & Analytical Views (Task 3)
 - **Window Ranking**: Dynamic standings calculated via `DENSE_RANK() OVER (ORDER BY s.points DESC, s.goal_difference DESC, s.goals_for DESC)`.
 - **Top Scorers Leaderboard**: Player ranks computed via `ROW_NUMBER() OVER (ORDER BY p.goals DESC, p.assists DESC)`.
 - **Aggregations & Multi-Table Joins**: Club squad size, total goals, and stadium statistics aggregated via `COUNT(DISTINCT ...)`, `SUM()`, and `AVG()`.
 
-### 5. Idempotent Database Loading
+### 5. Production Warehouse Container & Idempotency (Task 4)
+- **Dialect-Agnostic PostgreSQL & SQLite Support**: Containerized PostgreSQL 16 warehouse service with healthchecks, alongside zero-setup local SQLite.
 - The loader uses an **upsert / merge strategy**. Running the pipeline 1 time or 100 times produces identical, error-free database states without duplicate key violations.
 - Transactions are managed via atomic session context managers (`session.commit()` on success, `session.rollback()` on failure).
+
+### 6. Production REST API & Serving Layer (Task 5)
+- **Modern Lifespan Architecture**: Server startup and shutdown managed via FastAPI's `@asynccontextmanager lifespan`, ensuring schema initialization and view verification without deprecated `@app.on_event` handlers.
+- **Comprehensive Test Suite**: 30 dedicated integration tests in `tests/test_api.py` covering root discovery, health checks, data quality audit reports, dimensional entity filtering, match queries, analytical views, error conditions (404/422/500), CORS headers, and pipeline triggers.
 
 ---
 
@@ -159,7 +164,7 @@ Run the full pytest suite:
 ```bash
 pytest
 ```
-*(Executes 58 comprehensive unit and integration tests across SQLite and containerized PostgreSQL, covering raw ingestion, mathematical invariants, schema integrity, 3NF constraints, cascading deletes, multi-run idempotency, and all three analytical SQL window views: `vw_league_table`, `vw_top_scorers`, and `vw_club_analytics`).*
+*(Executes 88 comprehensive unit and integration tests across SQLite and containerized PostgreSQL, covering raw ingestion, mathematical invariants, schema integrity, 3NF constraints, cascading deletes, multi-run idempotency, analytical SQL window views, and all 30 REST API serving layer integration tests).*
 
 Execute live CLI analytical SQL views inspection:
 ```bash

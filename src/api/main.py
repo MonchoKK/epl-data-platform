@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,18 @@ from src.database.views import create_analytical_views
 
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initializes database tables and analytical views on server startup."""
+    engine = get_db_engine()
+    create_all_tables(engine)
+    create_analytical_views(engine)
+    logger.info("FastAPI application started and data warehouse views verified.")
+    yield
+    logger.info("FastAPI application shutdown completed.")
+
+
 app = FastAPI(
     title="EPL Data Engineering Platform API",
     description=(
@@ -21,6 +34,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Enable CORS for local development and web dashboard
@@ -41,15 +55,6 @@ if frontend_dir.exists():
     app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 
 
-@app.on_event("startup")
-def on_startup():
-    """Initializes tables and analytical views on server startup."""
-    engine = get_db_engine()
-    create_all_tables(engine)
-    create_analytical_views(engine)
-    logger.info("FastAPI application started and data warehouse views verified.")
-
-
 @app.get("/")
 def root():
     """Redirects to documentation or frontend dashboard."""
@@ -58,6 +63,8 @@ def root():
         "docs": "/docs",
         "frontend": "/app/index.html",
         "endpoints": {
+            "health": "/api/health",
+            "quality": "/api/quality",
             "clubs": "/api/clubs",
             "players": "/api/players",
             "matches": "/api/matches",
@@ -67,3 +74,4 @@ def root():
             "pipeline_trigger": "POST /api/pipeline/trigger",
         },
     }
+
